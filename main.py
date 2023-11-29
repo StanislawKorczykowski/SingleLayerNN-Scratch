@@ -6,31 +6,29 @@ def load_data(file_path):
     data_list = []
     labels_list = []
 
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
+    try:
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
 
-        for line in lines:
-            values = line.strip().split(',')
-            data = [float(x) for x in values[:-1]]
-            label = values[-1]
+            for line in lines:
+                values = line.strip().split(',')
+                data = [float(x) for x in values[:-1]]
+                label = values[-1]
 
-            data_list.append(data)
-            labels_list.append(label)
-
+                data_list.append(data)
+                labels_list.append(label)
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
     return data_list, labels_list
 
-def count_classes(labels_list):
-    classes = set()
-    for label in labels_list:
-        classes.add(label)
 
-    return classes
+def count_classes(labels_list):
+    return set(labels_list)
+
 
 def random_weights(features_count):
-    weights = []
-    for i in range(features_count):
-        weights.append(random.random())
-    return weights
+    return [random.random() for _ in range(features_count)]
+
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
@@ -41,7 +39,7 @@ def train_single_layer_nn(data, labels, num_classes, learning_rate, epochs):
     class_weights = [random_weights(feature_count) for _ in range(num_classes)]
     class_biases = [random.random() for _ in range(num_classes)]
 
-    for epoch in range(epochs):
+    for _ in range(epochs):
         for i in range(len(data)):
             x_i = data[i]
             l_i = labels[i]
@@ -52,7 +50,8 @@ def train_single_layer_nn(data, labels, num_classes, learning_rate, epochs):
                 target = 1 if l_i == c else 0
                 error = target - output
 
-                class_weights[c] = [w + learning_rate * error * x * output * (1 - output) for w, x in zip(class_weights[c], x_i)]
+                class_weights[c] = [w + learning_rate * error * x * output * (1 - output) for w, x in
+                                    zip(class_weights[c], x_i)]
                 class_biases[c] += learning_rate * error * output * (1 - output)
 
     return class_weights, class_biases
@@ -78,7 +77,6 @@ def main():
     test_data, test_labels = load_data("Resources/perceptron.test.data")
 
     label_to_num = {label: i for i, label in enumerate(sorted(set(train_labels)))}
-    num_to_label = {i: label for label, i in label_to_num.items()}
 
     train_labels = [label_to_num[label] for label in train_labels]
     test_labels = [label_to_num[label] for label in test_labels]
@@ -95,4 +93,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
